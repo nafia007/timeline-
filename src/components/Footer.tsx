@@ -78,6 +78,12 @@ const Footer = () => {
             >
               Privacy Policy
             </Link>
+            <Link 
+              to="/terms" 
+              className="text-xs text-muted-foreground hover:text-foreground font-body transition-colors underline"
+            >
+              Terms of Service
+            </Link>
           </div>
           <p className="text-xs text-muted-foreground font-body tracking-widest uppercase">
             Made by Holocene Films
