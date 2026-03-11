@@ -56,36 +56,56 @@ CREATE INDEX idx_profiles_subscription ON profiles(subscription_tier);
 CREATE INDEX idx_pending_payments_user_id ON pending_payments(user_id);
 CREATE INDEX idx_pending_payments_status ON pending_payments(status);
 
--- Insert default subscription plans (prices in cents for ZAR)
-INSERT INTO subscription_plans (name, description, price_monthly, price_yearly, price_monthly_cents, price_yearly_cents, features, is_active) VALUES
+-- Insert default subscription plans (prices in ZAR)
+INSERT INTO subscription_plans (id, name, description, price_monthly, price_yearly, price_monthly_cents, price_yearly_cents, features, is_active) VALUES
 (
-  'Free',
-  'Basic access to limited content',
-  0.00,
-  0.00,
-  0,
-  0,
+  'basic',
+  'Basic',
+  'SD streaming quality, watch on 1 device, limited library access',
+  49.00,
+  490.00,
+  4900,
+  49000,
   '[
-    "Access to limited films",
-    "Standard video quality",
-    "Basic community features"
+    "SD streaming quality",
+    "Watch on 1 device",
+    "Limited library access",
+    "Cancel anytime"
   ]'::jsonb,
   true
 ),
 (
-  'Premium',
-  'Full access to all content and features',
-  9.99,
-  99.99,
-  999,
-  9999,
+  'standard',
+  'Standard',
+  'Full HD streaming, watch on 2 devices, full library access, offline downloads',
+  99.00,
+  990.00,
+  9900,
+  99000,
   '[
-    "Unlimited film access",
-    "4K video quality",
-    "Download for offline viewing",
-    "Early access to new releases",
-    "No advertisements",
-    "Exclusive content"
+    "Full HD streaming",
+    "Watch on 2 devices",
+    "Full library access",
+    "Offline downloads",
+    "Cancel anytime"
+  ]'::jsonb,
+  true
+),
+(
+  'premium',
+  'Premium',
+  '4K Ultra HD + HDR, watch on 4 devices, full library + early access, offline downloads, Dolby Atmos audio',
+  149.00,
+  1490.00,
+  14900,
+  149000,
+  '[
+    "4K Ultra HD + HDR",
+    "Watch on 4 devices",
+    "Full library + early access",
+    "Offline downloads",
+    "Dolby Atmos audio",
+    "Cancel anytime"
   ]'::jsonb,
   true
 );

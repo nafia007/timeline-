@@ -159,7 +159,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     }
 
     // Paid plan - redirect to Peach Payments
-    const { data, error } = await supabase.functions.invoke("create-peach-checkout", {
+    const { data, error } = await supabase.functions.invoke("create-checkout", {
       body: {
         planId,
         planName: plan.name,
