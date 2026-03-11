@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { User, LogOut, Shield, Clapperboard, Rss } from "lucide-react";
+import { User, LogOut, Shield, Clapperboard, Rss, Crown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -45,6 +45,12 @@ const Navbar = () => {
             className="flex items-center gap-2 text-sm font-medium hover:opacity-70 transition-opacity font-body">
             <Clapperboard size={18} />
             <span className="hidden sm:inline">Filmmakers</span>
+          </Link>
+          <Link
+            to="/subscription"
+            className="flex items-center gap-2 text-sm font-medium hover:opacity-70 transition-opacity font-body text-primary">
+            <Crown size={18} />
+            <span className="hidden sm:inline">Subscribe</span>
           </Link>
           {user ?
           <>
