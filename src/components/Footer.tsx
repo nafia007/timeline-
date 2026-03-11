@@ -68,9 +68,17 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-border mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-xs text-muted-foreground font-body">
-            © {new Date().getFullYear()} Holocene Films. All rights reserved.
-          </p>
+          <div className="flex items-center gap-4">
+            <p className="text-xs text-muted-foreground font-body">
+              © {new Date().getFullYear()} Timeline. All rights reserved.
+            </p>
+            <Link 
+              to="/privacy" 
+              className="text-xs text-muted-foreground hover:text-foreground font-body transition-colors underline"
+            >
+              Privacy Policy
+            </Link>
+          </div>
           <p className="text-xs text-muted-foreground font-body tracking-widest uppercase">
             Made by Holocene Films
           </p>
