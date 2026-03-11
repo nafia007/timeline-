@@ -1,0 +1,1 @@
+ALTER TABLE public.films ADD COLUMN is_vertical BOOLEAN NOT NULL DEFAULT false;
