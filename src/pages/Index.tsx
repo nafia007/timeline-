@@ -71,6 +71,11 @@ const Index = () => {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
+      {/* Beta Banner */}
+      <div className="bg-primary text-primary-foreground py-2 text-center text-sm font-body">
+        🎉 Beta Access — Free for the first 2 months before official launch!
+      </div>
+
       {/* Hero — featured film */}
       <motion.section
         initial={{ opacity: 0 }}
