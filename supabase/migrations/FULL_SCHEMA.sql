@@ -333,10 +333,19 @@ CREATE POLICY "Users can update own subscription" ON user_subscriptions FOR UPDA
 -- 6. STORAGE BUCKETS
 -- ============================================================================
 
+-- Delete existing buckets if they exist (for fresh setup)
+DELETE FROM storage.buckets WHERE id IN ('films', 'avatars');
+
 INSERT INTO storage.buckets (id, name, public) VALUES ('films', 'films', true);
 INSERT INTO storage.buckets (id, name, public) VALUES ('avatars', 'avatars', true);
 
 -- Storage policies
+DROP POLICY IF EXISTS "Anyone can view films" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated users can upload films" ON storage.objects;
+DROP POLICY IF EXISTS "Users can upload avatars" ON storage.objects;
+DROP POLICY IF EXISTS "Users can update own uploads" ON storage.objects;
+DROP POLICY IF EXISTS "Users can delete own uploads" ON storage.objects;
+
 CREATE POLICY "Anyone can view films" ON storage.objects FOR SELECT USING (bucket_id IN ('films', 'avatars'));
 CREATE POLICY "Authenticated users can upload films" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'films' AND auth.role() = 'authenticated');
 CREATE POLICY "Users can upload avatars" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'avatars' AND auth.role() = 'authenticated');
