@@ -121,9 +121,9 @@ CREATE TABLE public.notifications (
 -- 2. SUBSCRIPTION TABLES
 -- ============================================================================
 
--- Subscription Plans Table
+-- Subscription Plans Table (use TEXT ID for compatibility)
 CREATE TABLE subscription_plans (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   description TEXT,
   price_monthly NUMERIC(10,2) NOT NULL,
@@ -365,7 +365,7 @@ CREATE INDEX idx_pending_payments_status ON pending_payments(status);
 
 INSERT INTO subscription_plans (id, name, description, price_monthly, price_yearly, price_monthly_cents, price_yearly_cents, features, is_active) VALUES
 (
-  gen_random_uuid(),
+  'basic',
   'Basic',
   'SD streaming quality, watch on 1 device, limited library access',
   49.00,
@@ -376,7 +376,7 @@ INSERT INTO subscription_plans (id, name, description, price_monthly, price_year
   true
 ),
 (
-  gen_random_uuid(),
+  'standard',
   'Standard',
   'Full HD streaming, watch on 2 devices, full library access, offline downloads',
   99.00,
@@ -387,7 +387,7 @@ INSERT INTO subscription_plans (id, name, description, price_monthly, price_year
   true
 ),
 (
-  gen_random_uuid(),
+  'premium',
   'Premium',
   '4K Ultra HD + HDR, watch on 4 devices, full library + early access, offline downloads, Dolby Atmos audio',
   149.00,
