@@ -365,7 +365,7 @@ CREATE INDEX idx_pending_payments_status ON pending_payments(status);
 
 INSERT INTO subscription_plans (id, name, description, price_monthly, price_yearly, price_monthly_cents, price_yearly_cents, features, is_active) VALUES
 (
-  'basic',
+  gen_random_uuid(),
   'Basic',
   'SD streaming quality, watch on 1 device, limited library access',
   49.00,
@@ -376,7 +376,7 @@ INSERT INTO subscription_plans (id, name, description, price_monthly, price_year
   true
 ),
 (
-  'standard',
+  gen_random_uuid(),
   'Standard',
   'Full HD streaming, watch on 2 devices, full library access, offline downloads',
   99.00,
@@ -387,7 +387,7 @@ INSERT INTO subscription_plans (id, name, description, price_monthly, price_year
   true
 ),
 (
-  'premium',
+  gen_random_uuid(),
   'Premium',
   '4K Ultra HD + HDR, watch on 4 devices, full library + early access, offline downloads, Dolby Atmos audio',
   149.00,
