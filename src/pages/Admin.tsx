@@ -14,7 +14,7 @@ import {
   Trash2, Search, Film, Users, Eye, CheckCircle, XCircle, Clock, Star, 
   ExternalLink, Lock, Unlock, Video, TrendingUp, TrendingDown, DollarSign, 
   Activity, BarChart3, PieChart, UserPlus, FilmIcon, AlertTriangle, CheckSquare,
-  Square, X
+  Square, X, Award, Edit, Ban, Check, MoreVertical
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
@@ -31,6 +31,16 @@ interface ProfileRow {
   featured_filmmaker: boolean;
   subscription_tier?: string;
   subscription_status?: string;
+  bio?: string | null;
+  website?: string | null;
+  social_links?: Record<string, string> | null;
+  is_verified?: boolean;
+}
+
+interface FilmmakerWithStats extends ProfileRow {
+  film_count: number;
+  total_views: number;
+  subscriber_count: number;
 }
 
 interface FilmRow {
@@ -87,6 +97,8 @@ const Admin = () => {
   const [users, setUsers] = useState<ProfileRow[]>([]);
   const [films, setFilms] = useState<FilmRow[]>([]);
   const [subscriptions, setSubscriptions] = useState<SubscriptionRow[]>([]);
+  const [filmmakers, setFilmmakers] = useState<FilmmakerWithStats[]>([]);
+  const [filmmakerSearch, setFilmmakerSearch] = useState("");
   const [userSearch, setUserSearch] = useState("");
   const [filmSearch, setFilmSearch] = useState("");
   const [loadingData, setLoadingData] = useState(true);
@@ -210,6 +222,28 @@ const Admin = () => {
         planDistribution
       });
 
+      // Calculate filmmaker stats
+      const filmmakerStats: Record<string, { film_count: number; total_views: number }> = {};
+      allFilms.forEach(f => {
+        if (!filmmakerStats[f.filmmaker_id]) {
+          filmmakerStats[f.filmmaker_id] = { film_count: 0, total_views: 0 };
+        }
+        filmmakerStats[f.filmmaker_id].film_count++;
+        filmmakerStats[f.filmmaker_id].total_views += f.view_count || 0;
+      });
+
+      // Build filmmakers with stats (only filmmakers, not regular users)
+      const filmmakersWithStats: FilmmakerWithStats[] = allUsers
+        .filter(u => u.role === "filmmaker")
+        .map(u => ({
+          ...u,
+          film_count: filmmakerStats[u.id]?.film_count || 0,
+          total_views: filmmakerStats[u.id]?.total_views || 0,
+          subscriber_count: 0
+        }));
+
+      setFilmmakers(filmmakersWithStats);
+
       setLoadingData(false);
     };
     fetchAll();
@@ -280,7 +314,43 @@ const Admin = () => {
       setUsers((prev) =>
         prev.map((u) => (u.id === profile.id ? { ...u, featured_filmmaker: newValue } : u))
       );
+      setFilmmakers((prev) =>
+        prev.map((f) => (f.id === profile.id ? { ...f, featured_filmmaker: newValue } : f))
+      );
       toast.success(newValue ? "Filmmaker featured" : "Filmmaker unfeatured");
+    }
+  };
+
+  const toggleVerified = async (filmmaker: FilmmakerWithStats) => {
+    const newValue = !(filmmaker as any).is_verified;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ is_verified: newValue } as any)
+      .eq("id", filmmaker.id);
+    if (error) {
+      toast.error("Failed to update verification status");
+    } else {
+      setFilmmakers((prev) =>
+        prev.map((f) => (f.id === filmmaker.id ? { ...f, is_verified: newValue } as any : f))
+      );
+      toast.success(newValue ? "Filmmaker verified" : "Verification removed");
+    }
+  };
+
+  const demoteToViewer = async (filmmaker: FilmmakerWithStats) => {
+    if (!confirm(`Demote "${filmmaker.username}" to viewer? Their films will remain but their filmmaker profile will be removed.`)) return;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ role: "viewer" })
+      .eq("id", filmmaker.id);
+    if (error) {
+      toast.error("Failed to demote user");
+    } else {
+      setFilmmakers((prev) => prev.filter((f) => f.id !== filmmaker.id));
+      setUsers((prev) =>
+        prev.map((u) => (u.id === filmmaker.id ? { ...u, role: "viewer" } : u))
+      );
+      toast.success("User demoted to viewer");
     }
   };
 
@@ -348,6 +418,12 @@ const Admin = () => {
     (u) =>
       u.username.toLowerCase().includes(userSearch.toLowerCase()) ||
       (u.display_name || "").toLowerCase().includes(userSearch.toLowerCase())
+  );
+
+  const filteredFilmmakers = filmmakers.filter(
+    (f) =>
+      f.username.toLowerCase().includes(filmmakerSearch.toLowerCase()) ||
+      (f.display_name || "").toLowerCase().includes(filmmakerSearch.toLowerCase())
   );
 
   const filteredFilms = films.filter((f) =>
@@ -593,6 +669,7 @@ const Admin = () => {
               Pending {pendingFilms.length > 0 && `(${pendingFilms.length})`}
             </TabsTrigger>
             <TabsTrigger value="films" className="font-body">All Films</TabsTrigger>
+            <TabsTrigger value="filmmakers" className="font-body">Filmmakers</TabsTrigger>
             <TabsTrigger value="users" className="font-body">Users</TabsTrigger>
             <TabsTrigger value="subscriptions" className="font-body">Subscriptions</TabsTrigger>
             <TabsTrigger value="analytics" className="font-body">Analytics</TabsTrigger>
@@ -721,6 +798,144 @@ const Admin = () => {
                         </TableCell>
                       </TableRow>
                     )}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Filmmakers Tab */}
+          <TabsContent value="filmmakers">
+            <div className="relative max-w-sm mb-4">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search filmmakers..."
+                value={filmmakerSearch}
+                onChange={(e) => setFilmmakerSearch(e.target.value)}
+                className="pl-9 font-body"
+              />
+            </div>
+            {loadingData ? (
+              <div className="flex justify-center py-12">
+                <div className="w-6 h-6 border-2 border-foreground border-t-transparent animate-spin" />
+              </div>
+            ) : filteredFilmmakers.length === 0 ? (
+              <div className="text-center text-muted-foreground py-16 font-body">
+                No filmmakers found
+              </div>
+            ) : (
+              <div className="border border-border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="font-body">Filmmaker</TableHead>
+                      <TableHead className="font-body">Films</TableHead>
+                      <TableHead className="font-body">Total Views</TableHead>
+                      <TableHead className="font-body">Verified</TableHead>
+                      <TableHead className="font-body">Featured</TableHead>
+                      <TableHead className="font-body">Subscription</TableHead>
+                      <TableHead className="font-body">Joined</TableHead>
+                      <TableHead className="font-body text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredFilmmakers.map((f) => (
+                      <TableRow key={f.id}>
+                        <TableCell className="font-body">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center overflow-hidden">
+                              {f.avatar_url ? (
+                                <img src={f.avatar_url} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="text-lg font-display">{(f.display_name || f.username)[0].toUpperCase()}</span>
+                              )}
+                            </div>
+                            <div>
+                              <button onClick={() => navigate(`/profile/${f.id}`)} className="hover:underline font-medium">
+                                {f.display_name || f.username}
+                              </button>
+                              <p className="text-xs text-muted-foreground">@{f.username}</p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Film size={14} className="text-muted-foreground" />
+                            <span className="font-body">{f.film_count}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Eye size={14} className="text-muted-foreground" />
+                            <span className="font-body">{f.total_views.toLocaleString()}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => toggleVerified(f)}
+                            title={(f as any).is_verified ? "Remove verification" : "Verify filmmaker"}
+                          >
+                            {(f as any).is_verified ? (
+                              <Award size={16} className="text-blue-500 fill-blue-500" />
+                            ) : (
+                              <Award size={16} className="text-muted-foreground" />
+                            )}
+                          </Button>
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => toggleFeatured(f)}
+                            title={f.featured_filmmaker ? "Remove from showcase" : "Add to showcase"}
+                          >
+                            <Star
+                              size={16}
+                              className={f.featured_filmmaker ? "fill-yellow-500 text-yellow-500" : "text-muted-foreground"}
+                            />
+                          </Button>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={f.subscription_tier === 'premium' ? 'default' : 'outline'} className="font-body text-xs">
+                            {f.subscription_tier || 'free'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="font-body text-muted-foreground text-sm">
+                          {new Date(f.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => navigate(`/profile/${f.id}`)}
+                              title="View profile"
+                            >
+                              <ExternalLink size={16} className="text-muted-foreground" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => demoteToViewer(f)}
+                              title="Demote to viewer"
+                              className="text-orange-500 hover:text-orange-600"
+                            >
+                              <Ban size={16} />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => deleteUser(f)}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 size={16} />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
                   </TableBody>
                 </Table>
               </div>
