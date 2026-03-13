@@ -1,6 +1,6 @@
 -- Subscription Plans Table
 CREATE TABLE subscription_plans (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   description TEXT,
   price_monthly NUMERIC(10,2) NOT NULL,
@@ -17,7 +17,7 @@ CREATE TABLE subscription_plans (
 CREATE TABLE pending_payments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  plan_id UUID NOT NULL REFERENCES subscription_plans(id),
+  plan_id TEXT NOT NULL REFERENCES subscription_plans(id),
   peach_transaction_id TEXT,
   amount NUMERIC(10,2) NOT NULL,
   currency TEXT DEFAULT 'ZAR',
@@ -32,7 +32,7 @@ CREATE TABLE pending_payments (
 CREATE TABLE user_subscriptions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  plan_id UUID NOT NULL REFERENCES subscription_plans(id),
+  plan_id TEXT NOT NULL REFERENCES subscription_plans(id),
   payment_id TEXT,
   status TEXT NOT NULL DEFAULT 'inactive',
   -- Status: trial, active, canceled, past_due, trialing

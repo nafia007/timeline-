@@ -41,6 +41,4 @@ TO authenticated
 USING (public.has_role(auth.uid(), 'admin'))
 WITH CHECK (public.has_role(auth.uid(), 'admin'));
 
--- Assign admin role to nafiakocks76@gmail.com
-INSERT INTO public.user_roles (user_id, role)
-VALUES ('5cbfc5a5-21ed-45ed-a91a-e271083bd4cd', 'admin');
+-- Assign admin role (to be updated after user signup)

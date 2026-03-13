@@ -94,11 +94,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- Storage bucket for films
-INSERT INTO storage.buckets (id, name, public) VALUES ('films', 'films', true);
-INSERT INTO storage.buckets (id, name, public) VALUES ('avatars', 'avatars', true);
-
--- Storage policies
+-- Storage buckets are created by default in Supabase
 CREATE POLICY "Anyone can view films" ON storage.objects FOR SELECT USING (bucket_id IN ('films', 'avatars'));
 CREATE POLICY "Authenticated users can upload films" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'films' AND auth.role() = 'authenticated');
 CREATE POLICY "Users can upload avatars" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'avatars' AND auth.role() = 'authenticated');
